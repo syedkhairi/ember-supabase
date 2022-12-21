@@ -8,8 +8,8 @@ import type SupabaseService from 'ember-supabase/services/supabase';
 import type Store from '@ember-data/store';
 import type ModelRegistry from 'ember-data/types/registries/model';
 import type DS from 'ember-data';
-import type { SupabaseQueryBuilder } from '@supabase/supabase-js/dist/module/lib/SupabaseQueryBuilder';
-import type PostgrestFilterBuilder from '@supabase/postgrest-js/dist/module/lib/PostgrestFilterBuilder';
+import type { RealtimeClientOptions } from '@supabase/realtime-js/dist/module/RealtimeClient';
+import type PostgrestFilterBuilder from '@supabase/postgrest-js/dist/module/PostgrestFilterBuilder';
 
 type ModelClass<K extends keyof ModelRegistry> = ModelRegistry[K] & {
   modelName: K;
@@ -228,7 +228,7 @@ export default class SupabaseAdapter extends RESTAdapter {
    */
   protected buildRef<K extends keyof ModelRegistry>(
     modelName: K
-  ): SupabaseQueryBuilder<ModelRegistry[K]> {
+  ): RealtimeClientOptions<ModelRegistry[K]> {
     const table = pluralize(underscore(modelName));
     return this.supabase.client.from(table);
   }
@@ -266,7 +266,7 @@ export default class SupabaseAdapter extends RESTAdapter {
    */
   private addRealtimeSubscription<K extends keyof ModelRegistry>(
     store: Store,
-    ref: SupabaseQueryBuilder<ModelRegistry[K]>,
+    ref: RealtimeClientOptions<ModelRegistry[K]>,
     type: ModelClass<K>
   ): void {
     ref
