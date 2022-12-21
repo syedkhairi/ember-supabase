@@ -1,12 +1,19 @@
 import Service from '@ember/service';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import {  AuthChangeEvent, AuthSession, createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
 import { getOwner } from '@ember/application';
-
 import type ApplicationInstance from '@ember/application/instance';
 import type Config from 'dummy/tests/dummy/app/config/environment';
 
+export interface Profile {
+  id?: string
+  username: string
+  website: string
+  avatar_url: string
+}
+
 export default class SupabaseService extends Service {
   client: SupabaseClient;
+  _session: AuthSession | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(...args: any[]) {
@@ -24,27 +31,41 @@ export default class SupabaseService extends Service {
   }
 
   async restoreSession() {
-    const session = this.client.auth.session();
+    this.client.auth.getSession().then(({ data }) => {
+      this._session = data.session
+    })
+    return this._session
+  }
 
-    if (session) {
-      return { data: session };
-    }
+  async authChanges(callback: (event: AuthChangeEvent, session: Session | null) => void) {
+    return this.client.auth.onAuthStateChange(callback)
+  }
 
-    const { data, error } = await this.client.auth.getSessionFromUrl({
-      storeSession: true,
-    });
-    return { data, error };
+  async profile(user: User) {
+    return this.client
+      .from('profiles')
+      .select(`username, website, avatar_url`)
+      .eq('id', user.id)
+      .single()
   }
 
   async login(email: string) {
-    const { error, data } = await this.client.auth.api.sendMagicLinkEmail(
-      email
-    );
-    return { data, error };
+    return this.client.auth.signInWithOtp({
+      email: email
+    });
   }
 
   async logout() {
     await this.client.auth.signOut();
+  }
+
+  updateProfile(profile: Profile) {
+    const update = {
+      ...profile,
+      updated_at: new Date(),
+    }
+
+    return this.client.from('profiles').upsert(update)
   }
 }
 

@@ -5,7 +5,7 @@ import FastBootService from 'ember-cli-fastboot/services/fastboot';
 import SupabaseService from 'ember-supabase/services/supabase';
 
 import type ApplicationInstance from '@ember/application/instance';
-import type { Session, User, Provider, ApiError } from '@supabase/gotrue-js';
+import type { Session, User, Provider, AuthApiError } from '@supabase/gotrue-js';
 import type { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/SupabaseAuthClient';
 
 // TODO: copied type from `@supabase/supabase-js`
@@ -14,7 +14,7 @@ export interface SignInResponse {
   user: User | null;
   provider?: Provider;
   url?: string | null;
-  error: ApiError | null;
+  error: AuthApiError | null;
 }
 
 export default class SupabaseAuthenticator extends BaseAuthenticator {
